@@ -1,0 +1,46 @@
+server:
+  port: 8000
+  adderess: 0.0.0.0
+spring:
+  application:
+    name: gateway
+  cloud:
+    consul:
+      enabled: true
+      discovery:
+        query-passing: true
+      config:
+        data-key: application.yml
+        prefixes: config
+        format: yaml
+        default-context: defaults
+        watch:
+          enabled: false
+        
+    gateway:
+      routes:
+        - id: rspgame
+          uri: lb://rspgame/
+          predicates:
+            - Path=/results,/results/**
+        - id: leaderboard
+          uri: lb://leaderboard/
+          predicates:
+            - Path=/leaders,/stats
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
+            allowedHeaders:
+              - "*"
+            allowedMethods:
+              - "GET"
+              - "POST"
+              - "OPTIONS"
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET,POST
+  config:
+    import: "optional:consul:"
